@@ -121,11 +121,12 @@
     extraGroups = [ "networkmanager" "wheel" ];
     shell = pkgs.fish;
     packages = with pkgs; [
+      git
       google-chrome
+      helix
       kitty
       lshw
-      helix
-      git
+      obsidian
     ];
   };
 
