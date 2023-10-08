@@ -86,6 +86,10 @@
     xkbVariant = "";
   };
 
+  fonts.packages = with pkgs; [
+    (nerdfonts.override { fonts = [ "FiraCode" ]; })
+  ];
+
   # Printing
   # https://nixos.wiki/wiki/Printing
   services.printing.enable = true;
@@ -126,15 +130,41 @@
       helix
       kitty
       lshw
+      rclone
       obsidian
+      vscode
     ];
   };
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
+  services.emacs.package = pkgs.emacs-unstable;
+
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
+    (python3.withPackages(ps: with ps; [ pandas numpy torch scipy matplotlib ]))
+
+    binutils       # native-comp needs 'as', provided by this
+    # 28.2 + native-comp
+    ((emacsPackagesFor emacsNativeComp).emacsWithPackages
+     (epkgs: [ epkgs.vterm ]))
+   
+    ## Doom dependencies
+    git
+    (ripgrep.override {withPCRE2 = true;})
+    gnutls              # for TLS connectivity
+    
+    ## Optional dependencies
+    fd                  # faster projectile indexing
+    imagemagick         # for image-dired
+    zstd                # for undo-fu-session/undo-tree compression
+    
+    ## Module dependencies
+    # :checkers spell
+    (aspellWithDicts (ds: with ds; [ en en-computers en-science ]))
+    # :tools editorconfig
+    editorconfig-core-c # per-project style config
+    # :tools lookup & :lang org +roam
+    sqlite
+    # :lang latex & :lang org (latex previews)
+    texlive.combined.scheme-medium
   ];
 
   programs = {
@@ -144,6 +174,7 @@
     };
 
     fish.enable = true;
+
   };
 
   # programs.git.config = {}
