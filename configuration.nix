@@ -5,14 +5,11 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [ # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  
-  nixpkgs.config.allowUnfree = true;
 
   boot.loader = {
     systemd-boot.enable = true;
@@ -22,7 +19,6 @@
   # Automatic Upgrades
   system.autoUpgrade.enable = true;
   # system.autoUpgrade.allowReboot = true;
-
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -68,7 +64,7 @@
     prime = {
       offload = {
         enable = true;
-	enableOffloadCmd = true;
+        enableOffloadCmd = true;
       };
       intelBusId = "PCI:0:2:0";
       nvidiaBusId = "PCI:1:0:0";
@@ -87,7 +83,12 @@
   };
 
   fonts.packages = with pkgs; [
-    (nerdfonts.override { fonts = [ "FiraCode" ]; })
+    (nerdfonts.override { fonts = [ "JetBrainsMono" "FiraCode" ]; })
+    roboto
+    noto-fonts
+    julia-mono
+    dancing-script
+    comic-neue
   ];
 
   # Printing
@@ -118,12 +119,15 @@
   # Enable touchpad support (enabled default in most desktopManager).
   services.xserver.libinput.enable = true;
 
+  services.fprintd.enable = true;
+  # services.fprintd.tod.enable = true;
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.ulins = {
     isNormalUser = true;
     description = "Steven Ulin";
     extraGroups = [ "networkmanager" "wheel" ];
-    shell = pkgs.fish;
+    shell = pkgs.zsh;
     packages = with pkgs; [
       git
       google-chrome
@@ -136,45 +140,32 @@
     ];
   };
 
+  programs.ulins = { emacs.enable = true; };
+
   services.emacs.package = pkgs.emacs-unstable;
 
-  environment.systemPackages = with pkgs; [
-    (python3.withPackages(ps: with ps; [ pandas numpy torch scipy matplotlib ]))
+  environment.variables = { MPLBACKEND = "TkAgg"; };
 
-    binutils       # native-comp needs 'as', provided by this
-    # 28.2 + native-comp
-    ((emacsPackagesFor emacsNativeComp).emacsWithPackages
-     (epkgs: [ epkgs.vterm ]))
-   
-    ## Doom dependencies
-    git
-    (ripgrep.override {withPCRE2 = true;})
-    gnutls              # for TLS connectivity
-    
-    ## Optional dependencies
-    fd                  # faster projectile indexing
-    imagemagick         # for image-dired
-    zstd                # for undo-fu-session/undo-tree compression
-    
-    ## Module dependencies
-    # :checkers spell
-    (aspellWithDicts (ds: with ds; [ en en-computers en-science ]))
-    # :tools editorconfig
-    editorconfig-core-c # per-project style config
-    # :tools lookup & :lang org +roam
-    sqlite
-    # :lang latex & :lang org (latex previews)
-    texlive.combined.scheme-medium
+  environment.systemPackages = with pkgs; [
+    fprintd
+    (python3.withPackages (ps:
+      with ps; [
+        pandas
+        numpy
+        torch
+        scipy
+        sympy
+        jupyter
+        (matplotlib.override { enableTk = true; })
+      ]))
+
+    binutils # native-comp needs 'as', provided by this
   ];
 
   programs = {
-    nixvim = {
-      enable = true;
-      plugins.lightline.enable = true;
-    };
-
-    fish.enable = true;
-
+    zsh.enable = true;
+    steam.enable = true;
+    neovim.enable = true;
   };
 
   # programs.git.config = {}
@@ -186,9 +177,6 @@
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
-
-
-
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
