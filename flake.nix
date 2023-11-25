@@ -8,18 +8,26 @@
       url = "github:nix-community/emacs-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nvim = {
+      url = "path:/home/ulins/neovim-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
+  outputs = { self, nixpkgs, nvim, ... }@inputs:
     let
       system = "x86_64-linux";
+
+      nixOverlay = final: prev: {
+        nvim = nvim.packages.${system}.nvim;
+      };
 
       lib = nixpkgs.lib;
 
       pkgs = import nixpkgs {
         inherit system;
         config = { allowUnfree = true; };
-        overlays = [ inputs.emacs-overlay.overlay ]
+        overlays = [ inputs.emacs-overlay.overlay nixOverlay ]
           ++ import ./packages/default.nix { inherit lib pkgs; };
       };
 

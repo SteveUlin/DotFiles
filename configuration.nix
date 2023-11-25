@@ -137,6 +137,7 @@
       rclone
       obsidian
       vscode
+      nvim
     ];
   };
 
@@ -165,7 +166,6 @@
   programs = {
     zsh.enable = true;
     steam.enable = true;
-    neovim.enable = true;
   };
 
   # programs.git.config = {}
