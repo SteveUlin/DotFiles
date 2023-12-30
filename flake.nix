@@ -4,22 +4,18 @@
   inputs = {
     nixpkgs.url = "github:NixOs/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-    emacs-overlay = {
-      url = "github:nix-community/emacs-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nvim = {
+    nixvim = {
       url = "path:/home/ulins/neovim-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, nvim, ... }@inputs:
+  outputs = { self, nixpkgs, nixvim, ... }@inputs:
     let
       system = "x86_64-linux";
 
       nixOverlay = final: prev: {
-        nvim = nvim.packages.${system}.nvim;
+        nvim = nixvim.packages.${system}.default;
       };
 
       lib = nixpkgs.lib;
@@ -27,7 +23,7 @@
       pkgs = import nixpkgs {
         inherit system;
         config = { allowUnfree = true; };
-        overlays = [ inputs.emacs-overlay.overlay nixOverlay ]
+        overlays = [ nixOverlay ]
           ++ import ./packages/default.nix { inherit lib pkgs; };
       };
 
@@ -36,7 +32,7 @@
 
       nixosConfigurations.luna = nixpkgs.lib.nixosSystem {
         inherit system pkgs;
-        modules = [ ./modules/emacs.nix ./configuration.nix ];
+        modules = [ ./configuration.nix ];
       };
     };
 }

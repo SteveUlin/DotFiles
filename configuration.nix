@@ -13,7 +13,14 @@
 
   boot.loader = {
     systemd-boot.enable = true;
+    systemd-boot.configurationLimit = 16;
     efi.canTouchEfiVariables = true;
+  };
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
   };
 
   # Automatic Upgrades
@@ -87,8 +94,10 @@
     roboto
     noto-fonts
     julia-mono
+    victor-mono
     dancing-script
     comic-neue
+    monaspace
   ];
 
   # Printing
@@ -127,25 +136,21 @@
     isNormalUser = true;
     description = "Steven Ulin";
     extraGroups = [ "networkmanager" "wheel" ];
-    shell = pkgs.zsh;
+    shell = pkgs.fish;
     packages = with pkgs; [
       git
       google-chrome
-      helix
       kitty
       lshw
       rclone
-      obsidian
-      vscode
       nvim
     ];
   };
 
-  programs.ulins = { emacs.enable = true; };
-
-  services.emacs.package = pkgs.emacs-unstable;
-
-  environment.variables = { MPLBACKEND = "TkAgg"; };
+  environment.variables = {
+    EDITOR = "nvim";
+    MPLBACKEND = "TkAgg";
+  };
 
   environment.systemPackages = with pkgs; [
     fprintd
@@ -161,11 +166,30 @@
       ]))
 
     binutils # native-comp needs 'as', provided by this
+    wl-clipboard
   ];
 
   programs = {
     zsh.enable = true;
     steam.enable = true;
+    fish.enable = true;
+  };
+
+  programs.tmux = {
+    enable = true;
+
+    baseIndex = 1;
+    customPaneNavigationAndResize = true;
+    keyMode = "vi";
+    shortcut = "Space";
+    terminal = "tmux-256color";
+    extraConfig = "set -gq allow-passthrough on";
+  };
+
+  programs.bash = {
+    shellAliases = {
+      nvimdev = "nix run /home/ulins/neovim-nix --";
+    };
   };
 
   # programs.git.config = {}
